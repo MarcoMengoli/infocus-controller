@@ -18,6 +18,8 @@
  */
 
 
+void showCommandOnDisplay();
+
 // ############# KEYPAD INIT start
 #define pinArd_keypad1 3
 #define pinArd_keypad2 4
@@ -50,6 +52,11 @@ KeypadNumber keyNum = KeypadNumber();
 RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
 // ############# RS232 INIT end
 
+// ############# PROJCOMMANDS INIT start
+ProjCommand* commands;
+int currentCommand;
+// ############# PROJCOMMANDS INIT end
+
 void setup()
 {
   Serial.begin(9600);
@@ -58,6 +65,11 @@ void setup()
   keypad.setDebounceTime(50);           // Default is 50mS
 
   Serial.println("STARTED");
+
+  commands = createArrayOfCommands();
+  currentCommand = 0;
+
+  
 }
 
 void loop()
@@ -88,7 +100,11 @@ void keypadEvent(KeypadEvent key)
 
 String getRequestString()
 {
-  
+  return "";
 }
 
+void showCommandOnDisplay()
+{
+  
+}
 
