@@ -22,7 +22,7 @@
  */
 
 
-void showNextCommandOnDisplay();
+void showCommandOnDisplay(int dir);
 void showFirstLineOnDisplay();
 void showSecondLineOnDisplay();
 void showNextSecondLineOnDisplay();
@@ -71,37 +71,61 @@ int currentSecondLine;
 LCD16x2 lcd;
 // ############# LCD INIT end
 
+
+// ############# 4 BUTTONS INIT start
+int buttons;
+// ############# 4 BUTTONS INIT end
+
+
 void setup()
 {
   Serial.begin(9600);
   keypad.addEventListener(keypadEvent); //add an event listener for this keypad
   keypad.setHoldTime(1200);               // Default is 1000mS
-  keypad.setDebounceTime(50);           // Default is 50mS
+  keypad.setDebounceTime(150);           // Default is 50mS
 
   Serial.println("STARTED");
-
-
-  commands = createArrayOfCommands();
-  currentCommand = -1;
-  currentSecondLine = 0;
-
-  for( int i = 0; i < N_COMMANDS; i++)
-  {
-    Serial.println(String(i) + " - " + commands[i].getCode());
-  }
 
   Wire.begin();
   lcd.lcdClear();
 
+  commands = createArrayOfCommands();
+  currentCommand = 0;
+  currentSecondLine = 0;
   
-  showNextCommandOnDisplay();
-
+  showCommandOnDisplay(0);
   
 }
 
 void loop()
 {
-  char key = keypad.getKey();
+  // the 4 buttons of the LCD
+  buttons = lcd.readButtons();
+  
+  if( !(buttons & 0x01))
+  {
+    Serial.println("DOWN");
+    showCommandOnDisplay(+1);
+  }
+  else if( !(buttons & 0x02)) 
+  { 
+    Serial.println("UP");
+    showCommandOnDisplay(-1);
+  }
+  else if( !(buttons & 0x04))
+  {
+    Serial.println("DX");
+  }
+  else if( !(buttons & 0x08))  
+  {
+    Serial.println("SX");
+  }
+    
+  delay(100);
+
+  // keypad (numbers and *,#
+  //char key = keypad.getKey();
+  
 }
 
 void keypadEvent(KeypadEvent key)
@@ -130,11 +154,22 @@ String getRequestString()
   return "";
 }
 
-void showNextCommandOnDisplay()
+void showCommandOnDisplay(int dir)
 {
   int nCommands = getNumberOfCommands();
-  currentCommand++;
-  currentCommand = currentCommand % nCommands;
+
+  if(dir == 0)
+  {
+    currentCommand = 0;
+  }
+  else if(dir > 0)
+  {
+    currentCommand = (currentCommand == nCommands-1 ? 0 : currentCommand+1);
+  }
+  else
+  {
+    currentCommand = (currentCommand == 0 ? nCommands : currentCommand-1);
+  }
   currentSecondLine = 0;
   
 
