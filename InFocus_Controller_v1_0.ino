@@ -1,5 +1,9 @@
+#include <Wire.h>
+#include <LCD16x2.h>
 #include <Keypad.h>
 #include "KeypadNumber.h"
+#include "ProjCommand.h"
+#include "CommandCreator.h"
 #include "RS232.h"
 
 /*
@@ -18,7 +22,11 @@
  */
 
 
-void showCommandOnDisplay();
+void showNextCommandOnDisplay();
+void showFirstLineOnDisplay();
+void showSecondLineOnDisplay();
+void showNextSecondLineOnDisplay();
+
 
 // ############# KEYPAD INIT start
 #define pinArd_keypad1 3
@@ -55,7 +63,13 @@ RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
 // ############# PROJCOMMANDS INIT start
 ProjCommand* commands;
 int currentCommand;
+int currentSecondLine;
 // ############# PROJCOMMANDS INIT end
+
+
+// ############# LCD INIT start
+LCD16x2 lcd;
+// ############# LCD INIT end
 
 void setup()
 {
@@ -66,8 +80,21 @@ void setup()
 
   Serial.println("STARTED");
 
+
   commands = createArrayOfCommands();
-  currentCommand = 0;
+  currentCommand = -1;
+  currentSecondLine = 0;
+
+  for( int i = 0; i < N_COMMANDS; i++)
+  {
+    Serial.println(String(i) + " - " + commands[i].getCode());
+  }
+
+  Wire.begin();
+  lcd.lcdClear();
+
+  
+  showNextCommandOnDisplay();
 
   
 }
@@ -103,8 +130,41 @@ String getRequestString()
   return "";
 }
 
-void showCommandOnDisplay()
+void showNextCommandOnDisplay()
 {
+  int nCommands = getNumberOfCommands();
+  currentCommand++;
+  currentCommand = currentCommand % nCommands;
+  currentSecondLine = 0;
   
+
+  showFirstLineOnDisplay();
+  showSecondLineOnDisplay();
+}
+
+void showFirstLineOnDisplay()
+{
+  lcd.lcdClear();
+  
+  lcd.lcdGoToXY(1,1);
+  Serial.println("FIRST LINE: " + String(fill16chars(commands[currentCommand].getName()).length()));
+  lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getName()).c_str(), false);
+}
+
+void showSecondLineOnDisplay()
+{  
+  
+  lcd.lcdGoToXY(1,2);
+  lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getSecondLineFromIndex(currentSecondLine)).c_str(), false);
+}
+
+void showNextSecondLineOnDisplay()
+{  
+  lcd.lcdGoToXY(0,2);
+  int totSecondLine = commands[currentCommand].getNumberOfSecondLines();
+  currentSecondLine++;
+  currentSecondLine = currentSecondLine % totSecondLine;
+  
+  showSecondLineOnDisplay();
 }
 

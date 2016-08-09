@@ -14,6 +14,7 @@
       String getCode();
       String* getSecondLineVector();
       String getSecondLineFromIndex(int index);
+      int getNumberOfSecondLines();
       int getMin();
       int getMax();
       int getStep();

@@ -20,6 +20,7 @@ String ProjCommand::getName()
 {
   return this->_name;
 }
+
 String ProjCommand::getCode()
 {
   return this->_command;
@@ -35,6 +36,10 @@ String ProjCommand::getSecondLineFromIndex(int index)
   {
     return this->_secondLine[index];
   }
+}
+int ProjCommand::getNumberOfSecondLines()
+{
+  return this->_secondLineSize;
 }
 int ProjCommand::getMin()
 {

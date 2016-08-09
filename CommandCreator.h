@@ -1,9 +1,14 @@
-#ifndef PROJCOMMAND_H
-#define PROJCOMMAND_H
+#ifndef COMMANDCREATOR_H
+#define COMMANDCREATOR_H
 
-  #include "Arduino.h"
   #include "ProjCommand.h"
 
-  ProjCommands* createArrayOfCommands();
+  #define N_COMMANDS 4
+
+  ProjCommand* createArrayOfCommands();
+  int getNumberOfCommands();
+
+  
+  String fill16chars(String str);
 
 #endif
