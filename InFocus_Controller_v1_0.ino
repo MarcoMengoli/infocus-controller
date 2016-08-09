@@ -24,8 +24,7 @@
 
 void showCommandOnDisplay(int dir);
 void showFirstLineOnDisplay();
-void showSecondLineOnDisplay();
-void showNextSecondLineOnDisplay();
+void showSecondLineOnDisplay(int dir);
 
 
 // ############# KEYPAD INIT start
@@ -64,6 +63,7 @@ RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
 ProjCommand* commands;
 int currentCommand;
 int currentSecondLine;
+int currentIntValue;
 // ############# PROJCOMMANDS INIT end
 
 
@@ -90,11 +90,10 @@ void setup()
   lcd.lcdClear();
 
   commands = createArrayOfCommands();
-  currentCommand = 0;
-  currentSecondLine = 0;
+
+  currentIntValue = -1;
   
   showCommandOnDisplay(0);
-  
 }
 
 void loop()
@@ -115,15 +114,23 @@ void loop()
   else if( !(buttons & 0x04))
   {
     Serial.println("DX");
+    showSecondLineOnDisplay(-1);
   }
   else if( !(buttons & 0x08))  
   {
     Serial.println("SX");
+    showSecondLineOnDisplay(+1);
+  }
+
+  if (Serial.available())
+  {
+    currentIntValue = Serial.readString().toInt();
+    showSecondLineOnDisplay(1);
   }
     
   delay(100);
 
-  // keypad (numbers and *,#
+  // keypad (numbers and *,#)
   //char key = keypad.getKey();
   
 }
@@ -156,6 +163,7 @@ String getRequestString()
 
 void showCommandOnDisplay(int dir)
 {
+  currentIntValue = -1;
   int nCommands = getNumberOfCommands();
 
   if(dir == 0)
@@ -168,13 +176,13 @@ void showCommandOnDisplay(int dir)
   }
   else
   {
-    currentCommand = (currentCommand == 0 ? nCommands : currentCommand-1);
+    currentCommand = (currentCommand == 0 ? nCommands-1 : currentCommand-1);
   }
   currentSecondLine = 0;
   
 
   showFirstLineOnDisplay();
-  showSecondLineOnDisplay();
+  showSecondLineOnDisplay(0);
 }
 
 void showFirstLineOnDisplay()
@@ -186,20 +194,55 @@ void showFirstLineOnDisplay()
   lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getName()).c_str(), false);
 }
 
-void showSecondLineOnDisplay()
-{  
+
+void showSecondLineOnDisplay(int dir)
+{
+  if(dir == 0)
+  {
+    currentSecondLine = 0;
+  }
+  else
+  {
+    int totSecondLine = commands[currentCommand].getNumberOfSecondLines();
+    Serial.println("Number second lines: " + String(totSecondLine));
+
+    if( dir > 0)
+    {
+      currentSecondLine = (currentSecondLine == totSecondLine-1 ? 0 : currentSecondLine+1);
+    }
+    else
+    {
+      currentSecondLine = (currentSecondLine == 0 ? totSecondLine-1 : currentSecondLine-1);
+    }
+  }
+  
+
+  String secLine = commands[currentCommand].getSecondLineFromIndex(currentSecondLine);
+  Serial.println("Current second line: " + secLine);
+
+  if(commands[currentCommand].getType() == CommandType::RANGE)
+  {
+    
+    secLine = fillNchars(secLine, 7);
+    secLine.concat(" ");
+    
+    if (currentIntValue >= 0 )
+    {
+      secLine.concat(String(currentIntValue)+"->");
+    }
+    
+    if (keyNum.getLength() > 0)
+    {
+      secLine.concat(String(keyNum.getNumber()));
+    }
+  }
+  else
+  {
+    secLine = fillNchars(secLine, 16);
+  }
   
   lcd.lcdGoToXY(1,2);
-  lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getSecondLineFromIndex(currentSecondLine)).c_str(), false);
-}
 
-void showNextSecondLineOnDisplay()
-{  
-  lcd.lcdGoToXY(0,2);
-  int totSecondLine = commands[currentCommand].getNumberOfSecondLines();
-  currentSecondLine++;
-  currentSecondLine = currentSecondLine % totSecondLine;
-  
-  showSecondLineOnDisplay();
+  lcd.lcdWrite((char*)secLine.c_str(), false);
 }
 

@@ -28,7 +28,7 @@ void KeypadNumber::addDigit(int digit)
 
 int KeypadNumber::getLength()
 {
-  return this->_index+1;
+  return this->_index;
 }
 
 int KeypadNumber::getNumber()

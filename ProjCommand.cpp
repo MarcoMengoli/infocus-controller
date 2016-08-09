@@ -26,6 +26,11 @@ String ProjCommand::getCode()
   return this->_command;
 }
 
+CommandType ProjCommand::getType()
+{
+  return this->_type;
+}
+
 String* ProjCommand::getSecondLineVector()
 {
   return this->_secondLine;
