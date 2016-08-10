@@ -92,6 +92,7 @@ void setup()
   commands = createArrayOfCommands();
 
   currentIntValue = -1;
+  currentCommand = 0;
   
   showCommandOnDisplay(0);
 }
@@ -128,14 +129,14 @@ void loop()
     showSecondLineOnDisplay(1);
   }
     
-  delay(100);
+  delay(30);
 
   // keypad (numbers and *,#)
-  //char key = keypad.getKey();
+  char key = keypad.getKey();
   
 }
 
-void keypadEvent(KeypadEvent key)
+void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
 {
   if (keypad.getState() == PRESSED)
   {
@@ -147,9 +148,15 @@ void keypadEvent(KeypadEvent key)
         ser.writeRequest(getRequestString());
         break;
       case '*':
+        currentIntValue = millis()%100;
+        showSecondLineOnDisplay(0);
         Serial.println("*"); break;
       default:
-        keyNum.addDigit(key);
+        int k = key-'0'; // conversion char to int
+        Serial.println(String(k));
+        keyNum.addDigit(k);
+        Serial.println("Keypad number: " + String(keyNum.getNumber()) + ", length: " + String(keyNum.getLength()) );
+        showSecondLineOnDisplay(0);
         break;
     }    
   }
@@ -163,6 +170,7 @@ String getRequestString()
 
 void showCommandOnDisplay(int dir)
 {
+  keyNum.reset();
   currentIntValue = -1;
   int nCommands = getNumberOfCommands();
 
@@ -190,21 +198,16 @@ void showFirstLineOnDisplay()
   lcd.lcdClear();
   
   lcd.lcdGoToXY(1,1);
-  Serial.println("FIRST LINE: " + String(fill16chars(commands[currentCommand].getName()).length()));
+  Serial.println("FIRST  LINE: " + String(fill16chars(commands[currentCommand].getName())));
   lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getName()).c_str(), false);
 }
 
 
 void showSecondLineOnDisplay(int dir)
 {
-  if(dir == 0)
-  {
-    currentSecondLine = 0;
-  }
-  else
+  if(dir != 0)
   {
     int totSecondLine = commands[currentCommand].getNumberOfSecondLines();
-    Serial.println("Number second lines: " + String(totSecondLine));
 
     if( dir > 0)
     {
@@ -218,28 +221,29 @@ void showSecondLineOnDisplay(int dir)
   
 
   String secLine = commands[currentCommand].getSecondLineFromIndex(currentSecondLine);
-  Serial.println("Current second line: " + secLine);
+  Serial.println("SECOND LINE (cur): " + secLine);
 
   if(commands[currentCommand].getType() == CommandType::RANGE)
   {
     
     secLine = fillNchars(secLine, 7);
+    Serial.println("SECOND LINE (fill): " + secLine);
     secLine.concat(" ");
     
     if (currentIntValue >= 0 )
     {
-      secLine.concat(String(currentIntValue)+"->");
+      secLine.concat(String(currentIntValue));
     }
     
     if (keyNum.getLength() > 0)
     {
-      secLine.concat(String(keyNum.getNumber()));
+      secLine.concat("->"+String(keyNum.getNumber()));
     }
   }
-  else
-  {
-    secLine = fillNchars(secLine, 16);
-  }
+  
+  secLine = fillNchars(secLine, 16);
+  
+  Serial.println("SECOND LINE (next): " + secLine);
   
   lcd.lcdGoToXY(1,2);
 

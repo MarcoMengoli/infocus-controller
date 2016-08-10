@@ -32,13 +32,6 @@ ProjCommand* createArrayOfCommands()
         ProjCommand("Accensione", "PWR", CommandType::ZERO_ONE, 0, 1, 1, secondLineOnOff, 1)
     };
 
-
-  for( int i = 0; i < N_COMMANDS; i++)
-  {
-    Serial.println(String(i) + " - " + commands[i].getCode());
-  }
-
-
   return commands;
 }
 
@@ -55,7 +48,19 @@ String fill16chars(String str)
 
 String fillNchars(String str, int n)
 {
-  str.concat("                                       ");
-  return str.substring(0, n);
+  int len = str.length();
+  
+  if (len == n)
+    return str;
+    
+  if(len > n)
+    return str.substring(0,n);
+  
+  for(int i = 0; i < n-len; i++)
+  {
+    str += " ";
+  }
+
+  return str;
 }
 

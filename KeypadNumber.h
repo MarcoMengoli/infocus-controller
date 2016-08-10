@@ -15,8 +15,8 @@
       int getLength();
   
     private:
-      byte _digits[NDIGITS];
-      byte _index;
+      int _digits[NDIGITS];
+      int _index;
   };
 
 #endif

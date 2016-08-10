@@ -8,22 +8,26 @@ KeypadNumber::KeypadNumber()
 
 void KeypadNumber::reset()
 {
-  this->_digits[0] = 0;
-  this->_digits[1] = 0;  
-  this->_digits[2] = 0;
+  for(int i = 0; i < NDIGITS; i++)
+    this->_digits[i] = 0;
+  
   this->_index = 0;
 }
 
 void KeypadNumber::addDigit(int digit)
 {
+  Serial.println("Digit: " + String(digit));
   if(digit < 0 || digit > 9)
     return;
   
-  if(this->_index < NDIGITS-1)
+  if(this->_index < NDIGITS)
   {
     this->_digits[this->_index] = (byte)digit;
     this->_index++;
   }
+
+  for(int i = 0; i < NDIGITS; i++)
+    Serial.println("this->_digits[" + String(i) + "]: " + String(this->_digits[i]));
 }
 
 int KeypadNumber::getLength()
@@ -33,10 +37,15 @@ int KeypadNumber::getLength()
 
 int KeypadNumber::getNumber()
 {
-  int i, num=0;
-  for(i = this->_index; i >= 0; i--)
+  int num=0;
+  for(int i = 0; i < this->_index; i++)
   {
-    num += this->_digits[i] * pow(10, i);
+    int mult = 1;
+    for(int j = 0; j < this->_index-i-1; j++)
+    {
+      mult = mult * 10;
+    }
+    num += this->_digits[i] * mult;
   }
 
   return num;
