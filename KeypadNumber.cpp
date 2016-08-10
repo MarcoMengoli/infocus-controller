@@ -16,9 +16,11 @@ void KeypadNumber::reset()
 
 void KeypadNumber::addDigit(int digit)
 {
-  Serial.println("Digit: " + String(digit));
   if(digit < 0 || digit > 9)
     return;
+
+  if (this->_index == NDIGITS)
+    this->_index = 0;
   
   if(this->_index < NDIGITS)
   {
@@ -50,6 +52,11 @@ int KeypadNumber::getNumber()
 
   return num;
   
+}
+
+int KeypadNumber::getMaxNumberOfDigits()
+{
+  return NDIGITS;
 }
 
 

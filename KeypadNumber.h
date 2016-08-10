@@ -13,6 +13,7 @@
       void addDigit(int digit);
       int getNumber();
       int getLength();
+      int getMaxNumberOfDigits();
   
     private:
       int _digits[NDIGITS];

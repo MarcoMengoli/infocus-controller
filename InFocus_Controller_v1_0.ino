@@ -237,7 +237,13 @@ void showSecondLineOnDisplay(int dir)
     
     if (keyNum.getLength() > 0)
     {
-      secLine.concat("->"+String(keyNum.getNumber()));
+      String num = String(keyNum.getNumber());
+      secLine.concat("->"+num);
+
+      for(int j = 0; j < keyNum.getMaxNumberOfDigits()-num.length(); j++)
+      {
+        secLine.concat("_");
+      }
     }
   }
   
