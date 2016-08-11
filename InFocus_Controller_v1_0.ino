@@ -28,11 +28,10 @@ void showSecondLineOnDisplay(int dir);
 boolean isNewValueCorrect();
 void notifyError();
 
-#define pinError 11
-#define pinWait 12
-#define pinOk 13
+#define pinErrorLed 11
+#define pinWaitLed 13
+#define pinOkLed 12
 
-#define timeLedOkOn 800
 
 // ############# KEYPAD INIT start
 #define pinArd_keypad1 2
@@ -85,12 +84,19 @@ int buttons;
 // ############# 4 BUTTONS INIT end
 
 
+
+// ############# FEEDBACK INIT start
+#define timeOkLedOn 1000
+#define timeErrorLedBlink 150
+long okStartTime;
+// ############# FEEDBACK INIT end
+
 void setup()
 {
   Serial.begin(9600);
   keypad.addEventListener(keypadEvent); //add an event listener for this keypad
   keypad.setHoldTime(1200);               // Default is 1000mS
-  keypad.setDebounceTime(150);           // Default is 50mS
+  keypad.setDebounceTime(50);           // Default is 50mS
 
   Serial.println("STARTED");
 
@@ -104,13 +110,23 @@ void setup()
   
   showCommandOnDisplay(0);
 
-  pinMode(pinOk, OUTPUT);
-  pinMode(pinWait, OUTPUT);
-  pinMode(pinError, OUTPUT);
+  pinMode(pinOkLed, OUTPUT);
+  pinMode(pinWaitLed, OUTPUT);
+  pinMode(pinErrorLed, OUTPUT);
+
+  digitalWrite(pinOkLed, LOW);
+  digitalWrite(pinWaitLed, LOW);
+  digitalWrite(pinErrorLed, LOW);
+
+  okStartTime = 0;
 }
 
 void loop()
 {
+  // power off the OkLed if up more than the specified time
+  if (okStartTime > 0 && (okStartTime + timeOkLedOn) < millis())
+    digitalWrite(pinOkLed, LOW); 
+  
   // the 4 buttons of the LCD
   buttons = lcd.readButtons();
   
@@ -157,20 +173,25 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
       case '#':
         // OK, send the number
         //Serial.println("#");
-        digitalWrite(ledWait, HIGH);
+        digitalWrite(pinWaitLed, HIGH);
         if (isNewValueCorrect())
         {
           ser.writeRequest(createCommandWriteString());
           Serial.println(createCommandWriteString());
 
           // wait for the response, or at least a minimum time to perform another # (InFocus documentation suggests about 3 seconds)
-          lcd.lcdClear();delay(30);showCommandOnDisplay(0);delay(30);lcd.lcdClear();delay(30);showCommandOnDisplay(0);
-          
+          showCommandOnDisplay(0);
+
+          delay(500);
+
+          digitalWrite(pinOkLed, HIGH);
+          digitalWrite(pinWaitLed, LOW);
+          okStartTime = millis();
         }
         else
         {
+          digitalWrite(pinWaitLed, LOW);
           Serial.println("ERROR!!");
-          digitalWrite(ledWait, LOW);
           notifyError();
           showCommandOnDisplay(0);
         }
@@ -337,18 +358,13 @@ boolean isNewValueCorrect()
 
 
 void notifyError()
-{  
-  digitalWrite(pinError, HIGH);
-  delay(50);
-  digitalWrite(pinError, LOW);
-  delay(50);
-  digitalWrite(pinError, HIGH);
-  delay(50);
-  digitalWrite(pinError, LOW);
-  delay(50);
-  digitalWrite(pinError, HIGH);
-  delay(50);
-  digitalWrite(pinError, LOW);
-  delay(50);
+{
+  for (int i = 0; i < 3; i++)
+  {
+    digitalWrite(pinErrorLed, HIGH);
+    delay(timeErrorLedBlink);
+    digitalWrite(pinErrorLed, LOW);
+    delay(timeErrorLedBlink);
+  }
 }
 

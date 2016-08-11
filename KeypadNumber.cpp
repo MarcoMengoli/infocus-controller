@@ -20,7 +20,9 @@ void KeypadNumber::addDigit(int digit)
     return;
 
   if (this->_index == NDIGITS)
-    this->_index = 0;
+  {
+    this->reset();
+  }
   
   if(this->_index < NDIGITS)
   {

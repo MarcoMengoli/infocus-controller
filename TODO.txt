@@ -1,2 +1,4 @@
 - Eliminare l'input proveniente dalla serialeRS232, a meno che non sia stata fatta esplicitamente una richiesta di dati
 - Mostrare led Giallo/rosso/verde se l'operazione deve ancora essere effettuata, è andata male o bene
+- Gestire richiesta lettura valore da seriale
+- nei comandi 1/0, mettere nella seconda riga del display il valore inserito
