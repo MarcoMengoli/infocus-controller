@@ -4,7 +4,7 @@
   #include "Arduino.h"
 
   #define NDIGITS 3
-  
+
   class KeypadNumber
   {
     public:
@@ -14,7 +14,8 @@
       int getNumber();
       int getLength();
       int getMaxNumberOfDigits();
-  
+      void setValue(int num);
+      
     private:
       int _digits[NDIGITS];
       int _index;
