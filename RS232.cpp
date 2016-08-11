@@ -44,4 +44,29 @@ String RS232::readResponse()
   return response;
 }
 
+String RS232::waitResponse(int timeout)
+{
+  String response = "";
+  int start = millis();
+
+  if (NULL != this->_swSerial)
+  {
+    while ((this->_swSerial->available() || response=="") && (start + timeout) <= millis())
+    {
+      response += this->_swSerial->readString();
+      delay(10);
+    }
+  }
+
+  return response;
+}
+
+void RS232::cleanBuffer()
+{
+  while (this->_swSerial->available())
+  {
+    this->_swSerial->readString();
+  }
+}
+
 

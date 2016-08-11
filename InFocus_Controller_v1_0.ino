@@ -63,7 +63,8 @@ KeypadNumber keyNum = KeypadNumber();
 // ############# RS232 INIT start
 #define pinArd_swSerialRx 9
 #define pinArd_swSerialTx 10
-RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
+//RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
+RS232 ser;
 // ############# RS232 INIT end
 
 // ############# PROJCOMMANDS INIT start
@@ -100,6 +101,10 @@ void setup()
   keypad.setDebounceTime(50);           // Default is 50mS
 
   Serial.println("STARTED");
+
+  
+  ser = RS232(pinArd_swSerialTx, pinArd_swSerialRx);
+  //ser.writeRequest("CIAO");
 
   Wire.begin();
   lcd.lcdClear();
@@ -152,11 +157,13 @@ void loop()
     showSecondLineOnDisplay(+1);
   }
 
+/*
   if (Serial.available())
   {
     currentIntValue = Serial.readString().toInt();
     showSecondLineOnDisplay(1);
   }
+  */
 
   // keypad (numbers and *,#)
   char key = keypad.getKey();
@@ -179,6 +186,7 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
         {
           ser.writeRequest(createCommandWriteString());
           Serial.println(createCommandWriteString());
+          
 
           // wait for the response, or at least a minimum time to perform another # (InFocus documentation suggests about 3 seconds)
           showCommandOnDisplay(0);
@@ -401,8 +409,11 @@ int getCurrentValue()
   
   String cmd = "(" + commands[currentCommand].getCode() + "?)";
   String resp;
+  
   // send request
+  ser.writeRequest(cmd);
   // get response
+  resp = ser.waitResponse(3000);
 
   int indexOfComma = resp.indexOf(",");
   int indexOfEndPar = resp.indexOf(")");
