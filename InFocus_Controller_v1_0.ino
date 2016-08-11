@@ -25,16 +25,23 @@
 void showCommandOnDisplay(int dir);
 void showFirstLineOnDisplay();
 void showSecondLineOnDisplay(int dir);
+boolean isNewValueCorrect();
+void notifyError();
 
+#define pinError 11
+#define pinWait 12
+#define pinOk 13
+
+#define timeLedOkOn 800
 
 // ############# KEYPAD INIT start
-#define pinArd_keypad1 3
-#define pinArd_keypad2 4
-#define pinArd_keypad3 5
-#define pinArd_keypad4 6
-#define pinArd_keypad5 7
-#define pinArd_keypad6 8
-#define pinArd_keypad7 9
+#define pinArd_keypad1 2
+#define pinArd_keypad2 3
+#define pinArd_keypad3 4
+#define pinArd_keypad4 5
+#define pinArd_keypad5 6
+#define pinArd_keypad6 7
+#define pinArd_keypad7 8
 #define ROWS 4 //four rows
 #define COLS 3 //three columns
 char keys[ROWS][COLS] = {
@@ -54,8 +61,8 @@ KeypadNumber keyNum = KeypadNumber();
 
 
 // ############# RS232 INIT start
-#define pinArd_swSerialRx 11
-#define pinArd_swSerialTx 12
+#define pinArd_swSerialRx 9
+#define pinArd_swSerialTx 10
 RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
 // ############# RS232 INIT end
 
@@ -64,6 +71,7 @@ ProjCommand* commands;
 int currentCommand;
 int currentSecondLine;
 int currentIntValue;
+String secLine; // must be global to be visibile by some functions
 // ############# PROJCOMMANDS INIT end
 
 
@@ -95,6 +103,10 @@ void setup()
   currentCommand = 0;
   
   showCommandOnDisplay(0);
+
+  pinMode(pinOk, OUTPUT);
+  pinMode(pinWait, OUTPUT);
+  pinMode(pinError, OUTPUT);
 }
 
 void loop()
@@ -128,11 +140,11 @@ void loop()
     currentIntValue = Serial.readString().toInt();
     showSecondLineOnDisplay(1);
   }
-    
-  delay(30);
 
   // keypad (numbers and *,#)
   char key = keypad.getKey();
+    
+  delay(10);
   
 }
 
@@ -144,18 +156,35 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
     {
       case '#':
         // OK, send the number
-        Serial.println("#");
-        ser.writeRequest(getRequestString());
+        //Serial.println("#");
+        digitalWrite(ledWait, HIGH);
+        if (isNewValueCorrect())
+        {
+          ser.writeRequest(createCommandWriteString());
+          Serial.println(createCommandWriteString());
+
+          // wait for the response, or at least a minimum time to perform another # (InFocus documentation suggests about 3 seconds)
+          lcd.lcdClear();delay(30);showCommandOnDisplay(0);delay(30);lcd.lcdClear();delay(30);showCommandOnDisplay(0);
+          
+        }
+        else
+        {
+          Serial.println("ERROR!!");
+          digitalWrite(ledWait, LOW);
+          notifyError();
+          showCommandOnDisplay(0);
+        }
+        
         break;
       case '*':
         currentIntValue = millis()%100;
         showSecondLineOnDisplay(0);
-        Serial.println("*"); break;
+        //Serial.println("*"); break;
       default:
         int k = key-'0'; // conversion char to int
-        Serial.println(String(k));
+        //Serial.println(String(k));
         keyNum.addDigit(k);
-        Serial.println("Keypad number: " + String(keyNum.getNumber()) + ", length: " + String(keyNum.getLength()) );
+        //Serial.println("Keypad number: " + String(keyNum.getNumber()) + ", length: " + String(keyNum.getLength()) );
         showSecondLineOnDisplay(0);
         break;
     }    
@@ -163,42 +192,56 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
 }
 
 
-String getRequestString()
+String createCommandWriteString()
 {
-  return "";
+  int currentNum = keyNum.getNumber();
+  String cmd = "(" + commands[currentCommand].getCode();
+  String choiceVal;
+  int spaceIndex;
+  switch(commands[currentCommand].getType())
+  {
+    case CommandType::ONE:
+      cmd += "1";
+      break;
+    case CommandType::ZERO_ONE:
+      cmd += String(currentNum);
+        break;
+    case CommandType::RANGE:
+      cmd += String(currentNum);
+        break;
+    case CommandType::CHOICE:
+      spaceIndex = secLine.indexOf(" ");
+      cmd += secLine.substring(0, spaceIndex);
+  }
+
+  return cmd + ")";
 }
 
 void showCommandOnDisplay(int dir)
 {
+  lcd.lcdClear();
   keyNum.reset();
   currentIntValue = -1;
   int nCommands = getNumberOfCommands();
 
-  if(dir == 0)
-  {
-    currentCommand = 0;
-  }
-  else if(dir > 0)
+  if(dir > 0)
   {
     currentCommand = (currentCommand == nCommands-1 ? 0 : currentCommand+1);
   }
-  else
+  else if(dir < 0)
   {
     currentCommand = (currentCommand == 0 ? nCommands-1 : currentCommand-1);
   }
-  currentSecondLine = 0;
   
-
   showFirstLineOnDisplay();
+  currentSecondLine = 0;
   showSecondLineOnDisplay(0);
 }
 
 void showFirstLineOnDisplay()
 {
-  lcd.lcdClear();
-  
   lcd.lcdGoToXY(1,1);
-  Serial.println("FIRST  LINE: " + String(fill16chars(commands[currentCommand].getName())));
+  //Serial.println("FIRST  LINE: " + String(fill16chars(commands[currentCommand].getName())));
   lcd.lcdWrite((char*)fill16chars(commands[currentCommand].getName()).c_str(), false);
 }
 
@@ -220,14 +263,14 @@ void showSecondLineOnDisplay(int dir)
   }
   
 
-  String secLine = commands[currentCommand].getSecondLineFromIndex(currentSecondLine);
-  Serial.println("SECOND LINE (cur): " + secLine);
+  secLine = commands[currentCommand].getSecondLineFromIndex(currentSecondLine);
+  //Serial.println("SECOND LINE (cur): " + secLine);
 
   if(commands[currentCommand].getType() == CommandType::RANGE)
   {
     
     secLine = fillNchars(secLine, 7);
-    Serial.println("SECOND LINE (fill): " + secLine);
+    //Serial.println("SECOND LINE (fill): " + secLine);
     secLine.concat(" ");
     
     if (currentIntValue >= 0 )
@@ -243,10 +286,63 @@ void showSecondLineOnDisplay(int dir)
   
   secLine = fillNchars(secLine, 16);
   
-  Serial.println("SECOND LINE (next): " + secLine);
+  //Serial.println("SECOND LINE (next): " + secLine);
   
   lcd.lcdGoToXY(1,2);
 
   lcd.lcdWrite((char*)secLine.c_str(), false);
+}
+
+boolean isNewValueCorrect()
+{
+  int currentNum = keyNum.getNumber();
+  int stepVal, remain, floorValue, ceilValue;
+  switch(commands[currentCommand].getType())
+  {
+    case CommandType::ONE: return true;
+    case CommandType::CHOICE: return true;
+    case CommandType::ZERO_ONE: if (currentNum == 0 || currentNum == 1) return true; else return false;
+    case CommandType::RANGE:
+      stepVal = commands[currentCommand].getStep(); 
+      if (currentNum < commands[currentCommand].getMin() || currentNum > commands[currentCommand].getMax())
+        return false;
+
+      remain = currentNum % stepVal;
+      if (remain == 0)
+        return true;
+
+      floorValue = ((int)(currentNum / stepVal)) * stepVal;
+      ceilValue = ((int)(currentNum / stepVal)+1) * stepVal;
+      
+      if (ceilValue - currentNum <= currentNum - floorValue)
+      {
+         keyNum.setValue(ceilValue);
+      }
+      else
+      {
+        keyNum.setValue(floorValue);
+      }
+
+      return true;
+
+  }
+  
+}
+
+
+void notifyError()
+{  
+  digitalWrite(pinError, HIGH);
+  delay(50);
+  digitalWrite(pinError, LOW);
+  delay(50);
+  digitalWrite(pinError, HIGH);
+  delay(50);
+  digitalWrite(pinError, LOW);
+  delay(50);
+  digitalWrite(pinError, HIGH);
+  delay(50);
+  digitalWrite(pinError, LOW);
+  delay(50);
 }
 

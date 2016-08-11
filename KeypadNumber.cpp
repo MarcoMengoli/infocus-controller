@@ -22,7 +22,7 @@ void KeypadNumber::addDigit(int digit)
   
   if(this->_index < NDIGITS)
   {
-    this->_digits[this->_index] = (byte)digit;
+    this->_digits[this->_index] = digit;
     this->_index++;
   }
 
@@ -37,6 +37,9 @@ int KeypadNumber::getLength()
 
 int KeypadNumber::getNumber()
 {
+  if (this->_index == 0)
+    return -1;
+    
   int num=0;
   for(int i = 0; i < this->_index; i++)
   {
@@ -50,6 +53,18 @@ int KeypadNumber::getNumber()
 
   return num;
   
+}
+
+
+void KeypadNumber::setValue(int num)
+{
+  String s = String(num);
+  this->reset();
+  for(int i = 0; i < s.length() || i < NDIGITS; i++)
+  {
+    this->_digits[this->_index] = s[i];
+    this->_index++;
+  }
 }
 
 

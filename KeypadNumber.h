@@ -13,7 +13,8 @@
       void addDigit(int digit);
       int getNumber();
       int getLength();
-  
+      void setValue(int num);
+      
     private:
       int _digits[NDIGITS];
       int _index;
