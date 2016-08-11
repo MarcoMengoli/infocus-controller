@@ -3,7 +3,7 @@
 
   #include "Arduino.h"
 
-  #define NDIGITS 3
+  #define NDIGITS 10
 
   class KeypadNumber
   {
@@ -14,11 +14,14 @@
       int getNumber();
       int getLength();
       int getMaxNumberOfDigits();
+      void setMaxNumberOfDigits(int nDigits);
+      void setMaxNumberOfDigitsByMaxValue(int maxValue);
       void setValue(int num);
       
     private:
       int _digits[NDIGITS];
       int _index;
+      int _maxDigits;
   };
 
 #endif

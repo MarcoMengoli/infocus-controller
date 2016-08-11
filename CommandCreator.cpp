@@ -15,7 +15,7 @@ ProjCommand* createArrayOfCommands()
 {
   
   static String secondLineOneControl[1] = {"# per eseguire"};
-  static String secondLineOnOff[1] = {"0 off   1 on"};
+  static String secondLineOnOff[1] = {"0_off 1_on"};
   static String secondLine0_100step1[1] = {"0:100,1"};
   static String secondLineAspectRatio[7] = {"0  Auto", "1  Nativo", "2  4:3", "3  16:9", "4  Letterbox", "5  Panorama", "6  16:10"};
   

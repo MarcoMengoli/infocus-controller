@@ -27,6 +27,7 @@ void showFirstLineOnDisplay();
 void showSecondLineOnDisplay(int dir);
 boolean isNewValueCorrect();
 void notifyError();
+int getCurrentValue();
 
 #define pinErrorLed 11
 #define pinWaitLed 13
@@ -198,7 +199,7 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
         
         break;
       case '*':
-        currentIntValue = millis()%100;
+        currentIntValue = getCurrentValue();
         showSecondLineOnDisplay(0);
         //Serial.println("*"); break;
       default:
@@ -253,6 +254,9 @@ void showCommandOnDisplay(int dir)
   {
     currentCommand = (currentCommand == 0 ? nCommands-1 : currentCommand-1);
   }
+
+  
+  keyNum.setMaxNumberOfDigitsByMaxValue(commands[currentCommand].getMax());
   
   showFirstLineOnDisplay();
   currentSecondLine = 0;
@@ -292,6 +296,28 @@ void showSecondLineOnDisplay(int dir)
     
     secLine = fillNchars(secLine, 7);
     //Serial.println("SECOND LINE (fill): " + secLine);
+    secLine.concat(" ");
+    
+    if (currentIntValue >= 0 )
+    {
+      secLine.concat(String(currentIntValue));
+    }
+    
+    if (keyNum.getLength() > 0)
+    {
+      String num = String(keyNum.getNumber());
+      secLine.concat("->"+num);
+
+      for(int j = 0; j < keyNum.getMaxNumberOfDigits()-num.length(); j++)
+      {
+        secLine.concat("_");
+      }
+    }
+  }
+  else if(commands[currentCommand].getType() == CommandType::ZERO_ONE)
+  {
+    
+    secLine = fillNchars(secLine, min(secLine.length(), 11));
     secLine.concat(" ");
     
     if (currentIntValue >= 0 )
@@ -366,5 +392,22 @@ void notifyError()
     digitalWrite(pinErrorLed, LOW);
     delay(timeErrorLedBlink);
   }
+}
+
+int getCurrentValue()
+{
+  if (commands[currentCommand].getType() == CommandType::ONE)
+    return -1;
+  
+  String cmd = "(" + commands[currentCommand].getCode() + "?)";
+  String resp;
+  // send request
+  // get response
+
+  int indexOfComma = resp.indexOf(",");
+  int indexOfEndPar = resp.indexOf(")");
+  String num = resp.substring(indexOfComma+2, indexOfEndPar);
+  return num.toInt();
+  
 }
 
