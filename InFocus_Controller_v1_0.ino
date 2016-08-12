@@ -4,7 +4,7 @@
 #include "KeypadNumber.h"
 #include "ProjCommand.h"
 #include "CommandCreator.h"
-#include "RS232.h"
+#include <SoftwareSerial.h>
 
 /*
  * author: Marco Mengoli
@@ -63,8 +63,7 @@ KeypadNumber keyNum = KeypadNumber();
 // ############# RS232 INIT start
 #define pinArd_swSerialRx 9
 #define pinArd_swSerialTx 10
-//RS232 ser = RS232(pinArd_swSerialRx, pinArd_swSerialTx);
-RS232 ser;
+SoftwareSerial swSer(pinArd_swSerialRx, pinArd_swSerialTx);
 // ############# RS232 INIT end
 
 // ############# PROJCOMMANDS INIT start
@@ -102,9 +101,9 @@ void setup()
 
   Serial.println("STARTED");
 
+  swSer.begin(115200);
   
-  ser = RS232(pinArd_swSerialTx, pinArd_swSerialRx);
-  //ser.writeRequest("CIAO");
+  swSer.print("CIAO");
 
   Wire.begin();
   lcd.lcdClear();
@@ -132,6 +131,11 @@ void loop()
   // power off the OkLed if up more than the specified time
   if (okStartTime > 0 && (okStartTime + timeOkLedOn) < millis())
     digitalWrite(pinOkLed, LOW); 
+
+  // flush the rs232 input buffer
+  while (swSer.available())
+    swSer.readString();
+    
   
   // the 4 buttons of the LCD
   buttons = lcd.readButtons();
@@ -167,7 +171,8 @@ void loop()
 
   // keypad (numbers and *,#)
   char key = keypad.getKey();
-    
+
+  
   delay(10);
   
 }
@@ -184,7 +189,7 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
         digitalWrite(pinWaitLed, HIGH);
         if (isNewValueCorrect())
         {
-          ser.writeRequest(createCommandWriteString());
+          swSer.print(createCommandWriteString());
           Serial.println(createCommandWriteString());
           
 
@@ -408,12 +413,19 @@ int getCurrentValue()
     return -1;
   
   String cmd = "(" + commands[currentCommand].getCode() + "?)";
-  String resp;
+  String resp="";
+  int start = millis();
+  int timeout = 3000;
   
   // send request
-  ser.writeRequest(cmd);
+  swSer.print(cmd);
+  delay(1000);
   // get response
-  resp = ser.waitResponse(3000);
+  while ((swSer.available() || resp=="") && (start + timeout) <= millis())
+  {
+    resp += swSer.readString();
+    delay(100);
+  }
 
   int indexOfComma = resp.indexOf(",");
   int indexOfEndPar = resp.indexOf(")");
