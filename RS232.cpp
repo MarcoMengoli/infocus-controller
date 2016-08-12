@@ -51,7 +51,7 @@ String RS232::waitResponse(int timeout)
 
   if (NULL != this->_swSerial)
   {
-    while ((this->_swSerial->available() || response=="") && (start + timeout) <= millis())
+    while ((this->_swSerial->available() || response=="") && (start + timeout) >= millis())
     {
       response += this->_swSerial->readString();
       delay(10);

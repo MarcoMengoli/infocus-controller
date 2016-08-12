@@ -102,8 +102,6 @@ void setup()
   Serial.println("STARTED");
 
   swSer.begin(115200);
-  
-  swSer.print("CIAO");
 
   Wire.begin();
   lcd.lcdClear();
@@ -133,8 +131,8 @@ void loop()
     digitalWrite(pinOkLed, LOW); 
 
   // flush the rs232 input buffer
-  while (swSer.available())
-    swSer.readString();
+  //while (swSer.available())
+  //  swSer.readString();
     
   
   // the 4 buttons of the LCD
@@ -411,25 +409,32 @@ int getCurrentValue()
 {
   if (commands[currentCommand].getType() == CommandType::ONE)
     return -1;
+
   
+  digitalWrite(pinWaitLed, HIGH);
   String cmd = "(" + commands[currentCommand].getCode() + "?)";
   String resp="";
-  int start = millis();
-  int timeout = 3000;
+  long start = millis();
+  long timeout = 3000;
   
   // send request
   swSer.print(cmd);
   delay(1000);
   // get response
-  while ((swSer.available() || resp=="") && (start + timeout) <= millis())
+  while ((swSer.available() || resp=="") && (start + timeout) >= millis())
   {
     resp += swSer.readString();
     delay(100);
   }
 
+  Serial.println("RESPONSE: " + resp);
+
   int indexOfComma = resp.indexOf(",");
   int indexOfEndPar = resp.indexOf(")");
   String num = resp.substring(indexOfComma+2, indexOfEndPar);
+
+  digitalWrite(pinWaitLed, LOW);
+  
   return num.toInt();
   
 }
