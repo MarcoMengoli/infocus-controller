@@ -194,7 +194,7 @@ void keypadEvent(KeypadEvent key) // KeypadEvent IS A CHAR!
           // wait for the response, or at least a minimum time to perform another # (InFocus documentation suggests about 3 seconds)
           showCommandOnDisplay(0);
 
-          delay(500);
+          delay(250);
 
           digitalWrite(pinOkLed, HIGH);
           digitalWrite(pinWaitLed, LOW);
@@ -419,9 +419,9 @@ int getCurrentValue()
   
   // send request
   swSer.print(cmd);
-  delay(1000);
+  delay(300);
   // get response
-  while ((swSer.available() || resp=="") && (start + timeout) >= millis())
+  while ( swSer.available() || (resp=="" && (start + timeout) >= millis()))
   {
     resp += swSer.readString();
     delay(100);
@@ -430,8 +430,8 @@ int getCurrentValue()
   Serial.println("RESPONSE: " + resp);
 
   int indexOfComma = resp.indexOf(",");
-  int indexOfEndPar = resp.indexOf(")");
-  String num = resp.substring(indexOfComma+2, indexOfEndPar);
+  int indexOfEndPar = resp.lastIndexOf(")");
+  String num = resp.substring(indexOfComma+1, indexOfEndPar);
 
   digitalWrite(pinWaitLed, LOW);
   

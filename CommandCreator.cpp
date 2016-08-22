@@ -22,8 +22,8 @@ ProjCommand* createArrayOfCommands()
   
   static ProjCommand commands[N_COMMANDS] = 
     { 
-        ProjCommand("Zoom ALLARGA", "MZI", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
-        ProjCommand("Zoom STRINGI", "MZO", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
+        ProjCommand("Zoom ALLARGA", "MZO", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
+        ProjCommand("Zoom STRINGI", "MZI", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
         ProjCommand("Fuoco AVANTI", "MFF", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
         ProjCommand("Fuoco INDIETRO", "MFN", CommandType::ONE, 1, 1, 1, secondLineOneControl, 1),
         ProjCommand("Aspetto", "ARZ", CommandType::CHOICE, 0, 6, 1, secondLineAspectRatio, 7),
