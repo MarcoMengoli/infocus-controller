@@ -3,7 +3,7 @@
 
   #include "ProjCommand.h"
 
-  #define N_COMMANDS 8
+  #define N_COMMANDS 9
 
   ProjCommand* createArrayOfCommands();
   int getNumberOfCommands();

@@ -29,8 +29,8 @@ boolean isNewValueCorrect();
 void notifyError();
 int getCurrentValue();
 
-#define pinErrorLed 11
-#define pinWaitLed 13
+#define pinErrorLed 13
+#define pinWaitLed 11
 #define pinOkLed 12
 
 

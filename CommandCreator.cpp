@@ -29,6 +29,7 @@ ProjCommand* createArrayOfCommands()
         ProjCommand("Aspetto", "ARZ", CommandType::CHOICE, 0, 6, 1, secondLineAspectRatio, 7),
         ProjCommand("Luminosita", "BRT", CommandType::RANGE, 0, 100, 1, secondLine0_100step1, 1),
         ProjCommand("Contrasto", "CON", CommandType::RANGE, 0, 100, 1, secondLine0_100step1, 1),
+        ProjCommand("Dig zoom", "DZM", CommandType::RANGE, 0, 100, 1, secondLine0_100step1, 1),
         ProjCommand("Accensione", "PWR", CommandType::ZERO_ONE, 0, 1, 1, secondLineOnOff, 1)
     };
 
